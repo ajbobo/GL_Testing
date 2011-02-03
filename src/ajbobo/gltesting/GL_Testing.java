@@ -49,7 +49,7 @@ public class GL_Testing extends Activity
 class CustomGLSurface extends GLSurfaceView
 {
 	private MyRenderer renderer;
-	private float lastY;
+	private float lastX, lastY;
 
 	public CustomGLSurface(Context context)
 	{
@@ -64,18 +64,24 @@ class CustomGLSurface extends GLSurfaceView
 	public boolean onTouchEvent(MotionEvent e) 
 	{
 		float y = e.getY();
+		float x = e.getX();
 		
 		switch(e.getAction())
 		{
 		case MotionEvent.ACTION_MOVE:
 			float diff = lastY - y;
 			float height = this.getHeight();
-			renderer.eyeloc += (diff / height) * 5;
+			renderer.distance += (diff / height) * 5;
+			
+			diff = lastX - x;
+			float width = this.getWidth();
+			renderer.angle += (diff / width) * 180;
 			
 			requestRender();
 			break;
 		}
 
+		lastX = x;
 		lastY = y;
 		
 		return true;
@@ -84,25 +90,43 @@ class CustomGLSurface extends GLSurfaceView
 	/** The class that handles the OpenGL calls and actually draws things */
 	private class MyRenderer implements GLSurfaceView.Renderer
 	{
-		public float eyeloc;
+		public float distance, angle;
 		
 		private float vertices[] = { 
-			-1, -1, 0, 
-			1, -1, 0, 
-			1, 1, 0, 
-			-1, 1, 0 
+			-1, -1, 1, 
+			1, -1, 1, 
+			1, 1, 1, 
+			-1, 1, 1,
+			-1, -1, -1, 
+			1, -1, -1, 
+			1, 1, -1, 
+			-1, 1, -1
 		};
 
 		private float colors[] = { 
 			1, 0, 0, 1, // red
 			0, 1, 0, 1, // green
 			0, 0, 1, 1, // blue
-			1, 0, 1, 1  // purple
+			1, 0, 1, 1, // purple
+			1, 1, 0, 1, // yellow
+			0, 1, 1, 1, // cyan
+			1, 1, 1, 1, // white
+			0, 0, 0, 1, // black
 		};
 
 		private byte indices[] = { 
+			// front
 			0, 1, 3,	
-			1, 2, 3
+			1, 2, 3,
+			// back
+			5, 4, 6,
+			4, 6, 7,
+			// left
+			4, 0, 7,
+			0, 3, 7,
+			// right
+			1, 5, 2,
+			5, 6, 2
 		};
 
 		private FloatBuffer vertexbuffer, colorbuffer;
@@ -110,7 +134,8 @@ class CustomGLSurface extends GLSurfaceView
 
 		public MyRenderer()
 		{
-			eyeloc = 3;
+			distance = 3;
+			angle = 0;
 			
 			// Buffers are needed to make sure that the garbage-collector doesn't throw away or move the arrays
 			ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4); // 4 = size of float
@@ -137,7 +162,8 @@ class CustomGLSurface extends GLSurfaceView
 			gl.glMatrixMode(GL10.GL_MODELVIEW);
 			gl.glLoadIdentity();
 			
-			GLU.gluLookAt(gl, 0, 0, eyeloc, 0, 0, 0, 0, 1, 0);
+			gl.glTranslatef(0, 0, -distance);
+			gl.glRotatef(-angle, 0, 1, 0);
 			
 			gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
 			gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
@@ -167,7 +193,7 @@ class CustomGLSurface extends GLSurfaceView
 			// Some one-time OpenGL initialization can be made here probably based on features of this particular context
 			gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_FASTEST);
 			gl.glClearColor(0, 0, .25f, 1);
-			gl.glEnable(GL10.GL_CULL_FACE);
+			//gl.glEnable(GL10.GL_CULL_FACE);
 			gl.glShadeModel(GL10.GL_SMOOTH);
 			gl.glEnable(GL10.GL_DEPTH_TEST);
 		}
