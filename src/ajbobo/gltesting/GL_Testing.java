@@ -9,7 +9,6 @@ import javax.microedition.khronos.opengles.GL10;
 import android.app.Activity;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
-import android.opengl.GLU;
 import android.os.Bundle;
 import android.view.MotionEvent;
 
