@@ -65,6 +65,7 @@ public class GL_Testing extends Activity
 		case DIALOG_SELECT_PRIMITIVE:
 	      return new AlertDialog.Builder(this)
 		      .setTitle("Select Primitive")
+		      .setIcon(android.R.drawable.ic_dialog_alert)
 		      .setItems(R.array.Primitives, new DialogInterface.OnClickListener()
 				{
 					public void onClick(DialogInterface dialog, int which)
