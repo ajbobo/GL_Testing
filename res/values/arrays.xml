@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="Primitives">
+        <item>Points</item>
+        <item>Lines</item>
+        <item>Line loop</item>
+        <item>Triangles</item>
+    </string-array>
+</resources>

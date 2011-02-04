@@ -7,15 +7,23 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 
 /** Main activity for the program */
 public class GL_Testing extends Activity
 {
-	private GLSurfaceView glsurface;
+	private static final int MENU_SELECT_PRIMITIVE = Menu.FIRST;
+	private static final int DIALOG_SELECT_PRIMITIVE = 1;
+	
+	private CustomGLSurface glsurface;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -27,6 +35,52 @@ public class GL_Testing extends Activity
 		setContentView(glsurface);
 		glsurface.requestFocus();
 		glsurface.setFocusableInTouchMode(true);
+	}
+	
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		menu.add(0, MENU_SELECT_PRIMITIVE, 0, "Render Mode");
+		
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		switch (item.getItemId())
+		{
+		case MENU_SELECT_PRIMITIVE:	showDialog(DIALOG_SELECT_PRIMITIVE); return true;
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public Dialog onCreateDialog(int id)
+	{
+		switch (id)
+		{
+		case DIALOG_SELECT_PRIMITIVE:
+	      return new AlertDialog.Builder(this)
+		      .setTitle("Select Primitive")
+		      .setItems(R.array.Primitives, new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface dialog, int which)
+					{
+						switch(which)
+						{
+						case 0: glsurface.setPrimitive(GL10.GL_POINTS); break;
+						case 1: glsurface.setPrimitive(GL10.GL_LINES); break;
+						case 2: glsurface.setPrimitive(GL10.GL_LINE_LOOP); break;
+						case 3: glsurface.setPrimitive(GL10.GL_TRIANGLES); break;
+						}
+					}
+				})
+		     .create();
+		}
+		return null;
 	}
 
 	@Override
@@ -58,6 +112,7 @@ class CustomGLSurface extends GLSurfaceView
 		setRenderer(renderer);
 		setRenderMode(RENDERMODE_WHEN_DIRTY);
 	}
+
 	
 	@Override 
 	public boolean onTouchEvent(MotionEvent e) 
@@ -85,11 +140,18 @@ class CustomGLSurface extends GLSurfaceView
 		
 		return true;
 	}
+	
+	public void setPrimitive(int primitive)
+	{
+		renderer.primitive = primitive;
+		requestRender();
+	}
 
 	/** The class that handles the OpenGL calls and actually draws things */
 	private class MyRenderer implements GLSurfaceView.Renderer
 	{
 		public float distance, angle;
+		public int primitive;
 		
 		private float vertices[] = { 
 			-1, -1, 1, 
@@ -135,6 +197,7 @@ class CustomGLSurface extends GLSurfaceView
 		{
 			distance = 3;
 			angle = 0;
+			primitive = GL10.GL_TRIANGLES;
 			
 			// Buffers are needed to make sure that the garbage-collector doesn't throw away or move the arrays
 			ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4); // 4 = size of float
@@ -169,7 +232,7 @@ class CustomGLSurface extends GLSurfaceView
 
 			gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexbuffer);
 			gl.glColorPointer(4, GL10.GL_FLOAT, 0, colorbuffer);
-			gl.glDrawElements(GL10.GL_TRIANGLES, indices.length, GL10.GL_UNSIGNED_BYTE, indexbuffer);
+			gl.glDrawElements(primitive, indices.length, GL10.GL_UNSIGNED_BYTE, indexbuffer);
 		}
 
 		public void onSurfaceChanged(GL10 gl, int width, int height)
@@ -195,6 +258,8 @@ class CustomGLSurface extends GLSurfaceView
 			//gl.glEnable(GL10.GL_CULL_FACE);
 			gl.glShadeModel(GL10.GL_SMOOTH);
 			gl.glEnable(GL10.GL_DEPTH_TEST);
+			gl.glPointSize(5);
+			gl.glLineWidth(3);
 		}
 	}
 
